@@ -4,6 +4,7 @@ pipeline {
     environment {
         IMAGE_NAME = "kunj22/chaos-devsecops"
         IMAGE_TAG = "${BUILD_NUMBER}"
+        DOCKER_USER = "kunj22"
     }
 
     stages {
@@ -35,9 +36,11 @@ pipeline {
             }
         }
 
-        stage('Trivy Scan') {
+        stage('Trivy Security Scan') {
             steps {
-                sh 'trivy fs .'
+                sh '''
+                trivy fs .
+                '''
             }
         }
 
@@ -46,6 +49,20 @@ pipeline {
                 sh '''
                 docker build -t $IMAGE_NAME:$IMAGE_TAG -f docker/Dockerfile .
                 '''
+            }
+        }
+
+        stage('Docker Login') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-creds',
+                    usernameVariable: 'USERNAME',
+                    passwordVariable: 'PASSWORD'
+                )]) {
+                    sh '''
+                    echo $PASSWORD | docker login -u $USERNAME --password-stdin
+                    '''
+                }
             }
         }
 
@@ -78,10 +95,15 @@ pipeline {
 
     post {
         success {
-            echo "Pipeline completed successfully 🚀"
+            echo "🚀 DevSecOps Pipeline completed successfully!"
         }
+
         failure {
-            echo "Pipeline failed ❌ Check logs"
+            echo "❌ Pipeline failed. Check logs."
+        }
+
+        always {
+            echo "Pipeline execution finished."
         }
     }
 }
