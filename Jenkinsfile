@@ -29,6 +29,7 @@ pipeline {
             steps {
                 sh '''
                 . venv/bin/activate
+                export PYTHONPATH=$WORKSPACE
                 pytest tests/
                 '''
             }
@@ -42,13 +43,17 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t $IMAGE_NAME:$IMAGE_TAG -f docker/Dockerfile .'
+                sh '''
+                docker build -t $IMAGE_NAME:$IMAGE_TAG -f docker/Dockerfile .
+                '''
             }
         }
 
         stage('Push Docker Image') {
             steps {
-                sh 'docker push $IMAGE_NAME:$IMAGE_TAG'
+                sh '''
+                docker push $IMAGE_NAME:$IMAGE_TAG
+                '''
             }
         }
 
@@ -69,6 +74,14 @@ pipeline {
                 '''
             }
         }
+    }
 
+    post {
+        success {
+            echo "Pipeline completed successfully 🚀"
+        }
+        failure {
+            echo "Pipeline failed ❌ Check logs"
+        }
     }
 }
