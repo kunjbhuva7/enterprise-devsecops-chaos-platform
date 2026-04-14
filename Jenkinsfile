@@ -1,4 +1,3 @@
-
 pipeline {
     agent any
 
@@ -17,13 +16,21 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
-                sh 'pip install -r app/requirements.txt'
+                sh '''
+                python3 -m venv venv
+                . venv/bin/activate
+                pip install --upgrade pip
+                pip install -r app/requirements.txt
+                '''
             }
         }
 
         stage('Run Tests') {
             steps {
-                sh 'pytest tests/'
+                sh '''
+                . venv/bin/activate
+                pytest tests/
+                '''
             }
         }
 
@@ -56,7 +63,10 @@ pipeline {
 
         stage('Chaos Test') {
             steps {
-                sh 'bash chaos/pod-delete.sh'
+                sh '''
+                chmod +x chaos/pod-delete.sh
+                bash chaos/pod-delete.sh
+                '''
             }
         }
 
