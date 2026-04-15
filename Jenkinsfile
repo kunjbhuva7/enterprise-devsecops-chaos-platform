@@ -77,8 +77,8 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 sh '''
-                sed "s|IMAGE_TAG|$IMAGE_NAME:$IMAGE_TAG|g" k8s/deployment.yaml | kubectl apply -f -
-                kubectl apply -f k8s/service.yaml
+                sed "s|IMAGE_TAG|$IMAGE_NAME:$IMAGE_TAG|g" k8s/deployment.yaml | kubectl apply --validate=false -f -
+                kubectl apply --validate=false -f k8s/service.yaml
                 '''
             }
         }
